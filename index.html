@@ -156,7 +156,6 @@
             min-width: 140px;
         }
 
-        /* Блок выбора услуг (стилизованные карточки) */
         .services-group {
             display: flex;
             flex-wrap: wrap;
@@ -206,7 +205,6 @@
             border-color: #ff9f2e;
         }
 
-        /* Чекбокс согласия */
         .checkbox-group {
             flex-direction: row;
             align-items: center;
@@ -338,19 +336,16 @@
 
         <div class="form-body">
             <form id="connectForm">
-                <!-- ФИО -->
                 <div class="input-group">
                     <label class="required">Ваше имя</label>
                     <input type="text" id="fullname" placeholder="Например: Дмитрий Волков" required>
                 </div>
 
-                <!-- Телефон -->
                 <div class="input-group">
                     <label class="required">Телефон</label>
                     <input type="tel" id="phone" placeholder="+7 (8422) XX-XX-XX или 8-917-XXX-XX-XX" required>
                 </div>
 
-                <!-- Город Ульяновск (фиксированный) + Адрес -->
                 <div class="row-2col">
                     <div class="input-group">
                         <label class="required">Город</label>
@@ -363,17 +358,15 @@
                     </div>
                 </div>
 
-                <!-- БЛОК: АБОНЕНТСКИЙ ОТДЕЛ (ВЫПАДАЮЩЕЕ МЕНЮ) -->
                 <div class="input-group">
                     <label class="required">Абонентский отдел</label>
                     <select id="department" required>
-                        <option value="АО Рябикова 21б">📍 Рябикова 21б</option>
-                        <option value="АО Нариманова 1Г">📍 Нариманова 1Г</option>
-                        <option value="АО Ульяновский 4б">📍 Ульяновский 4б</option>
+                        <option value="Рябикова 21б">📍 Рябикова 21б</option>
+                        <option value="Нариманова 1Г">📍 Нариманова 1Г</option>
+                        <option value="Ульяновский 4б">📍 Ульяновский 4б</option>
                     </select>
                 </div>
 
-                <!-- БЛОК: ВЫБОР УСЛУГ -->
                 <div class="input-group">
                     <label class="required">Выберите необходимые услуги</label>
                     <div class="services-group">
@@ -392,13 +385,11 @@
                     </div>
                 </div>
 
-                <!-- Комментарий -->
                 <div class="input-group">
                     <label>Комментарий / пожелания</label>
                     <textarea rows="2" id="comment" placeholder="Удобное время для звонка (с 10 до 18), этаж, домофон, нужен роутер..."></textarea>
                 </div>
 
-                <!-- Согласие -->
                 <div class="input-group checkbox-group">
                     <input type="checkbox" id="agree" required>
                     <label>Я согласен на обработку персональных данных и получение информации об услугах</label>
@@ -418,19 +409,17 @@
             const form = document.getElementById('connectForm');
             const messageDiv = document.getElementById('formMessage');
             
-            // URL вашего Google Apps Script веб-приложения
             const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmoi3E4cSEd0_06ltHr8l3Dp8_c2LjilX12Ke8F6FMTM2OzZ4KboWc_dSCuxO6ijcQ1Q/exec';
 
             function showMessage(text, isSuccess = true) {
                 messageDiv.style.display = 'block';
                 messageDiv.textContent = text;
                 messageDiv.className = 'message-area ' + (isSuccess ? 'success' : 'error');
-                // Автоматически скрываем сообщение через 6 секунд для успеха, через 8 для ошибки
                 setTimeout(() => {
                     if (messageDiv.style.display === 'block') {
                         messageDiv.style.display = 'none';
                     }
-                }, isSuccess ? 6000 : 8000);
+                }, 6000);
             }
 
             function validatePhone(phone) {
@@ -438,31 +427,38 @@
                 return digits.length >= 10 && digits.length <= 12;
             }
 
-            // Функция отправки данных в Google Sheets
-            async function submitToGoogleSheets(formData) {
-                try {
-                    const response = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors', // Важно для Google Apps Script при кросс-доменных запросах
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(formData)
-                    });
+            // Отправка через GET запрос (URL encoding) - самый надежный способ
+            function submitToGoogleSheets(data) {
+                return new Promise((resolve, reject) => {
+                    // Формируем параметры запроса
+                    const params = new URLSearchParams();
+                    params.append('fullname', data.fullname);
+                    params.append('phone', data.phone);
+                    params.append('city', data.city);
+                    params.append('address', data.address);
+                    params.append('department', data.department);
+                    params.append('services', data.services);
+                    params.append('comment', data.comment);
+                    params.append('timestamp', data.timestamp);
                     
-                    // При использовании mode: 'no-cors' мы не можем прочитать ответ
-                    // Поэтому считаем, что если не было ошибки сети - запрос ушёл
-                    return { success: true, message: 'Заявка успешно отправлена' };
-                } catch (error) {
-                    console.error('Ошибка при отправке:', error);
-                    return { success: false, message: 'Ошибка сети: ' + error.message };
-                }
+                    const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                    
+                    // Используем JSONP стиль или обычный GET
+                    fetch(url, {
+                        method: 'GET',
+                        mode: 'no-cors'
+                    }).then(() => {
+                        // При no-cors мы не можем получить ответ, но запрос уходит
+                        resolve({ success: true });
+                    }).catch((error) => {
+                        reject(error);
+                    });
+                });
             }
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                // Собираем данные из формы
                 const fullname = document.getElementById('fullname').value.trim();
                 const phone = document.getElementById('phone').value.trim();
                 const city = 'Ульяновск';
@@ -471,7 +467,6 @@
                 const comment = document.getElementById('comment').value.trim();
                 const agreeCheck = document.getElementById('agree').checked;
 
-                // Получаем выбранную услугу
                 let selectedServices = 'Интернет';
                 const servicesRadios = document.querySelectorAll('input[name="services"]');
                 for (let radio of servicesRadios) {
@@ -481,7 +476,6 @@
                     }
                 }
 
-                // Валидации
                 if (!fullname) {
                     showMessage('❌ Пожалуйста, укажите ваше имя', false);
                     document.getElementById('fullname').focus();
@@ -493,12 +487,12 @@
                     return;
                 }
                 if (!validatePhone(phone)) {
-                    showMessage('⚠️ Номер телефона должен содержать не менее 10 цифр. Например: 8422XXXXXX или 917XXXXXXX', false);
+                    showMessage('⚠️ Номер телефона должен содержать не менее 10 цифр', false);
                     document.getElementById('phone').focus();
                     return;
                 }
                 if (!street) {
-                    showMessage('🏠 Укажите улицу и номер дома (адрес подключения)', false);
+                    showMessage('🏠 Укажите улицу и номер дома', false);
                     document.getElementById('street').focus();
                     return;
                 }
@@ -508,47 +502,36 @@
                     return;
                 }
 
-                const fullAddress = `${city}, ${street}`;
-                
-                // Формируем объект с данными для отправки
-                // Названия полей должны соответствовать тем, которые ожидает ваш Apps Script
+                const submitBtn = form.querySelector('.submit-btn');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '⏳ Отправка заявки...';
+
                 const applicationData = {
                     timestamp: new Date().toLocaleString('ru-RU'),
                     fullname: fullname,
                     phone: phone,
                     city: city,
                     address: street,
-                    full_address: fullAddress,
                     department: department,
                     services: selectedServices,
-                    comment: comment || '—',
-                    source: 'Сайт ЭВО Ульяновск'
+                    comment: comment || '—'
                 };
 
-                // Блокируем кнопку на время отправки
-                const submitBtn = form.querySelector('.submit-btn');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '⏳ Отправка заявки...';
-
-                // Отправляем данные в Google Sheets
-                const result = await submitToGoogleSheets(applicationData);
-                
-                if (result.success) {
-                    showMessage(`✅ Заявка успешно отправлена! Абонентский отдел: ${department}. Пакет: ${selectedServices}. Менеджер свяжется с вами в ближайшее время.`, true);
-                    // Очищаем форму
+                try {
+                    await submitToGoogleSheets(applicationData);
+                    showMessage(`✅ Заявка успешно отправлена! Имя: ${fullname}. Абонентский отдел: ${department}. Пакет: ${selectedServices}. Менеджер свяжется с вами.`, true);
                     form.reset();
-                    // Восстанавливаем значения по умолчанию
-                    document.getElementById('department').value = 'АО Рябикова 21б';
+                    document.getElementById('department').value = 'Рябикова 21б';
                     document.getElementById('service_internet').checked = true;
-                    console.log('📋 Данные отправлены в Google Sheets:', applicationData);
-                } else {
-                    showMessage(`❌ Ошибка при отправке: ${result.message}. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.`, false);
+                    console.log('Отправлено:', applicationData);
+                } catch (error) {
+                    showMessage(`❌ Ошибка при отправке. Пожалуйста, попробуйте позже.`, false);
+                    console.error('Ошибка:', error);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
-                
-                // Разблокируем кнопку
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
             });
         })();
     </script>
