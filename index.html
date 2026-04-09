@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Заявка на подключение к ЭВО | Ульяновск</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #eef2f9 0%, #dce5f2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            max-width: 660px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.01);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #002b54, #0a3e62);
+            padding: 32px 28px 28px 28px;
+            color: white;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .logo-evo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 5px 22px;
+            border-radius: 60px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .logo-evo:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo-evo span {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #0055a4;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 500px;
+            margin: 16px auto 0;
+        }
+
+        .city-badge {
+            display: inline-block;
+            background: rgba(255,255,240,0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 6px 16px;
+            margin-top: 14px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .form-body {
+            padding: 32px 30px 40px;
+        }
+
+        .input-group {
+            margin-bottom: 22px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #2c3e66;
+            margin-bottom: 8px;
+        }
+
+        .required:after {
+            content: "*";
+            color: #e53e3e;
+            margin-left: 4px;
+        }
+
+        input, select, textarea {
+            padding: 14px 18px;
+            font-size: 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 28px;
+            background: #fefefe;
+            transition: all 0.2s;
+            font-family: inherit;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #ff9f2e;
+            box-shadow: 0 0 0 3px rgba(255, 159, 46, 0.2);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232c3e66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+        }
+
+        .row-2col {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .row-2col .input-group {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        /* Блок выбора услуг (стилизованные карточки) */
+        .services-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .service-option {
+            flex: 1;
+            min-width: 140px;
+            background: #f8fafc;
+            border: 1.5px solid #e2edf7;
+            border-radius: 28px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .service-option input {
+            display: none;
+        }
+
+        .service-option label {
+            display: block;
+            text-align: center;
+            padding: 14px 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 28px;
+            cursor: pointer;
+            background: transparent;
+            color: #1f2b48;
+            margin: 0;
+            text-transform: none;
+            letter-spacing: 0;
+            transition: all 0.2s;
+        }
+
+        .service-option input:checked + label {
+            background: #ff9f2e;
+            color: white;
+            border-color: #ff9f2e;
+            box-shadow: 0 6px 12px -8px rgba(0,0,0,0.2);
+        }
+
+        .service-option:hover {
+            background: #eef2ff;
+            border-color: #ff9f2e;
+        }
+
+        /* Чекбокс согласия */
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0 10px;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            accent-color: #ff9f2e;
+            margin: 0;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-size: 0.85rem;
+            text-transform: none;
+            font-weight: 500;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(100deg, #ff8c2e, #ffb347);
+            border: none;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            border-radius: 48px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+            box-shadow: 0 8px 18px rgba(255, 140, 46, 0.3);
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(100deg, #e67e22, #ffa53e);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(255, 140, 46, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message-area {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 60px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .success {
+            background: #dff9e6;
+            color: #1e7b48;
+            border-left: 4px solid #2ecc71;
+        }
+
+        .error {
+            background: #ffe6e5;
+            color: #c0392b;
+            border-left: 4px solid #e74c3c;
+        }
+
+        footer {
+            background: #f1f5f9;
+            text-align: center;
+            padding: 16px;
+            font-size: 0.7rem;
+            color: #4a627a;
+            border-top: 1px solid #e2edf7;
+        }
+
+        @media (max-width: 550px) {
+            .form-body {
+                padding: 24px 20px;
+            }
+            .hero h1 {
+                font-size: 1.4rem;
+                gap: 8px;
+            }
+            .logo-evo span {
+                font-size: 1.3rem;
+            }
+            .logo-evo {
+                padding: 4px 16px;
+            }
+            .service-option label {
+                font-size: 0.8rem;
+                padding: 10px 8px;
+            }
+        }
+
+        .city-static {
+            background: #f1f4f9;
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            border-radius: 28px;
+            border: 1.5px solid #e2e8f0;
+            font-weight: 500;
+            color: #1e2a3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="hero">
+            <h1>
+                <span>Подключение к</span>
+                <div class="logo-evo">
+                    <span>ЭВО</span>
+                </div>
+            </h1>
+            <p>Оставьте заявку — и специалист свяжется с вами, чтобы согласовать детали и дату подключения</p>
+            <div class="city-badge">
+                🌍 Ульяновск — работаем во всех районах: Засвияжье, Ленинский, Железнодорожный, Заволжский
+            </div>
+        </div>
+
+        <div class="form-body">
+            <form id="connectForm">
+                <!-- ФИО -->
+                <div class="input-group">
+                    <label class="required">Ваше имя</label>
+                    <input type="text" id="fullname" placeholder="Например: Дмитрий Волков" required>
+                </div>
+
+                <!-- Телефон -->
+                <div class="input-group">
+                    <label class="required">Телефон</label>
+                    <input type="tel" id="phone" placeholder="+7 (8422) XX-XX-XX или 8-917-XXX-XX-XX" required>
+                </div>
+
+                <!-- Город Ульяновск (фиксированный) + Адрес -->
+                <div class="row-2col">
+                    <div class="input-group">
+                        <label class="required">Город</label>
+                        <div class="city-static">📍 Ульяновск</div>
+                        <input type="hidden" id="city" value="Ульяновск">
+                    </div>
+                    <div class="input-group">
+                        <label class="required">Улица, дом, квартира</label>
+                        <input type="text" id="street" placeholder="ул. Гончарова, д. 15, кв. 42" required>
+                    </div>
+                </div>
+
+                <!-- БЛОК: АБОНЕНТСКИЙ ОТДЕЛ (ВЫПАДАЮЩЕЕ МЕНЮ) -->
+                <div class="input-group">
+                    <label class="required">Абонентский отдел</label>
+                    <select id="department" required>
+                        <option value="АО Рябикова 21б">📍 Рябикова 21б</option>
+                        <option value="АО Нариманова 1Г">📍 Нариманова 1Г</option>
+                        <option value="АО Ульяновский 4б">📍 Ульяновский 4б</option>
+                    </select>
+                </div>
+
+                <!-- БЛОК: ВЫБОР УСЛУГ -->
+                <div class="input-group">
+                    <label class="required">Выберите необходимые услуги</label>
+                    <div class="services-group">
+                        <div class="service-option">
+                            <input type="radio" name="services" id="service_internet" value="Интернет" checked>
+                            <label for="service_internet">🌐 Интернет</label>
+                        </div>
+                        <div class="service-option">
+                            <input type="radio" name="services" id="service_internet_tv" value="Интернет+ТВ">
+                            <label for="service_internet_tv">📺 Интернет + ТВ</label>
+                        </div>
+                        <div class="service-option">
+                            <input type="radio" name="services" id="service_full" value="Интернет+ТВ+Мобильная связь">
+                            <label for="service_full">📱 Интернет + ТВ + Мобильная связь</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Комментарий -->
+                <div class="input-group">
+                    <label>Комментарий / пожелания</label>
+                    <textarea rows="2" id="comment" placeholder="Удобное время для звонка (с 10 до 18), этаж, домофон, нужен роутер..."></textarea>
+                </div>
+
+                <!-- Согласие -->
+                <div class="input-group checkbox-group">
+                    <input type="checkbox" id="agree" required>
+                    <label>Я согласен на обработку персональных данных и получение информации об услугах</label>
+                </div>
+
+                <button type="submit" class="submit-btn">📨 Отправить заявку на подключение к ЭВО</button>
+                <div id="formMessage" class="message-area"></div>
+            </form>
+        </div>
+        <footer>
+            * Услуги предоставляются в г. Ульяновск. Нажимая «Отправить», вы соглашаетесь с условиями оферты.
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            const form = document.getElementById('connectForm');
+            const messageDiv = document.getElementById('formMessage');
+            
+            // URL вашего Google Apps Script веб-приложения
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmoi3E4cSEd0_06ltHr8l3Dp8_c2LjilX12Ke8F6FMTM2OzZ4KboWc_dSCuxO6ijcQ1Q/exec';
+
+            function showMessage(text, isSuccess = true) {
+                messageDiv.style.display = 'block';
+                messageDiv.textContent = text;
+                messageDiv.className = 'message-area ' + (isSuccess ? 'success' : 'error');
+                // Автоматически скрываем сообщение через 6 секунд для успеха, через 8 для ошибки
+                setTimeout(() => {
+                    if (messageDiv.style.display === 'block') {
+                        messageDiv.style.display = 'none';
+                    }
+                }, isSuccess ? 6000 : 8000);
+            }
+
+            function validatePhone(phone) {
+                const digits = phone.replace(/\D/g, '');
+                return digits.length >= 10 && digits.length <= 12;
+            }
+
+            // Функция отправки данных в Google Sheets
+            async function submitToGoogleSheets(formData) {
+                try {
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // Важно для Google Apps Script при кросс-доменных запросах
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    // При использовании mode: 'no-cors' мы не можем прочитать ответ
+                    // Поэтому считаем, что если не было ошибки сети - запрос ушёл
+                    return { success: true, message: 'Заявка успешно отправлена' };
+                } catch (error) {
+                    console.error('Ошибка при отправке:', error);
+                    return { success: false, message: 'Ошибка сети: ' + error.message };
+                }
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                // Собираем данные из формы
+                const fullname = document.getElementById('fullname').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const city = 'Ульяновск';
+                const street = document.getElementById('street').value.trim();
+                const department = document.getElementById('department').value;
+                const comment = document.getElementById('comment').value.trim();
+                const agreeCheck = document.getElementById('agree').checked;
+
+                // Получаем выбранную услугу
+                let selectedServices = 'Интернет';
+                const servicesRadios = document.querySelectorAll('input[name="services"]');
+                for (let radio of servicesRadios) {
+                    if (radio.checked) {
+                        selectedServices = radio.value;
+                        break;
+                    }
+                }
+
+                // Валидации
+                if (!fullname) {
+                    showMessage('❌ Пожалуйста, укажите ваше имя', false);
+                    document.getElementById('fullname').focus();
+                    return;
+                }
+                if (!phone) {
+                    showMessage('📞 Введите номер телефона для связи', false);
+                    document.getElementById('phone').focus();
+                    return;
+                }
+                if (!validatePhone(phone)) {
+                    showMessage('⚠️ Номер телефона должен содержать не менее 10 цифр. Например: 8422XXXXXX или 917XXXXXXX', false);
+                    document.getElementById('phone').focus();
+                    return;
+                }
+                if (!street) {
+                    showMessage('🏠 Укажите улицу и номер дома (адрес подключения)', false);
+                    document.getElementById('street').focus();
+                    return;
+                }
+                if (!agreeCheck) {
+                    showMessage('📜 Необходимо согласие на обработку персональных данных', false);
+                    document.getElementById('agree').focus();
+                    return;
+                }
+
+                const fullAddress = `${city}, ${street}`;
+                
+                // Формируем объект с данными для отправки
+                // Названия полей должны соответствовать тем, которые ожидает ваш Apps Script
+                const applicationData = {
+                    timestamp: new Date().toLocaleString('ru-RU'),
+                    fullname: fullname,
+                    phone: phone,
+                    city: city,
+                    address: street,
+                    full_address: fullAddress,
+                    department: department,
+                    services: selectedServices,
+                    comment: comment || '—',
+                    source: 'Сайт ЭВО Ульяновск'
+                };
+
+                // Блокируем кнопку на время отправки
+                const submitBtn = form.querySelector('.submit-btn');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '⏳ Отправка заявки...';
+
+                // Отправляем данные в Google Sheets
+                const result = await submitToGoogleSheets(applicationData);
+                
+                if (result.success) {
+                    showMessage(`✅ Заявка успешно отправлена! Абонентский отдел: ${department}. Пакет: ${selectedServices}. Менеджер свяжется с вами в ближайшее время.`, true);
+                    // Очищаем форму
+                    form.reset();
+                    // Восстанавливаем значения по умолчанию
+                    document.getElementById('department').value = 'АО Рябикова 21б';
+                    document.getElementById('service_internet').checked = true;
+                    console.log('📋 Данные отправлены в Google Sheets:', applicationData);
+                } else {
+                    showMessage(`❌ Ошибка при отправке: ${result.message}. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.`, false);
+                }
+                
+                // Разблокируем кнопку
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            });
+        })();
+    </script>
+</body>
+</html>
