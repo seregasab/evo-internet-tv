@@ -338,29 +338,29 @@
             <form id="connectForm">
                 <div class="input-group">
                     <label class="required">Ваше имя</label>
-                    <input type="text" id="fullname" placeholder="Например: Дмитрий Волков" required>
+                    <input type="text" id="fullname" name="fullname" placeholder="Например: Дмитрий Волков" required>
                 </div>
 
                 <div class="input-group">
                     <label class="required">Телефон</label>
-                    <input type="tel" id="phone" placeholder="+7 (8422) XX-XX-XX или 8-917-XXX-XX-XX" required>
+                    <input type="tel" id="phone" name="phone" placeholder="+7 (8422) XX-XX-XX или 8-917-XXX-XX-XX" required>
                 </div>
 
                 <div class="row-2col">
                     <div class="input-group">
                         <label class="required">Город</label>
                         <div class="city-static">📍 Ульяновск</div>
-                        <input type="hidden" id="city" value="Ульяновск">
+                        <input type="hidden" id="city" name="city" value="Ульяновск">
                     </div>
                     <div class="input-group">
                         <label class="required">Улица, дом, квартира</label>
-                        <input type="text" id="street" placeholder="ул. Гончарова, д. 15, кв. 42" required>
+                        <input type="text" id="street" name="street" placeholder="ул. Гончарова, д. 15, кв. 42" required>
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label class="required">Абонентский отдел</label>
-                    <select id="department" required>
+                    <select id="department" name="department" required>
                         <option value="Рябикова 21б">📍 Рябикова 21б</option>
                         <option value="Нариманова 1Г">📍 Нариманова 1Г</option>
                         <option value="Ульяновский 4б">📍 Ульяновский 4б</option>
@@ -387,7 +387,7 @@
 
                 <div class="input-group">
                     <label>Комментарий / пожелания</label>
-                    <textarea rows="2" id="comment" placeholder="Удобное время для звонка (с 10 до 18), этаж, домофон, нужен роутер..."></textarea>
+                    <textarea rows="2" id="comment" name="comment" placeholder="Удобное время для звонка (с 10 до 18), этаж, домофон, нужен роутер..."></textarea>
                 </div>
 
                 <div class="input-group checkbox-group">
@@ -409,7 +409,8 @@
             const form = document.getElementById('connectForm');
             const messageDiv = document.getElementById('formMessage');
             
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmoi3E4cSEd0_06ltHr8l3Dp8_c2LjilX12Ke8F6FMTM2OzZ4KboWc_dSCuxO6ijcQ1Q/exec';
+            // НОВЫЙ URL вашего Google Apps Script
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9wYEq0yuKtiJ04r8xmF5vfdXhLoLmzOZVt1QbeH5uExJm_zqtxxlO-LWOuR1MRufy-g/exec';
 
             function showMessage(text, isSuccess = true) {
                 messageDiv.style.display = 'block';
@@ -427,46 +428,38 @@
                 return digits.length >= 10 && digits.length <= 12;
             }
 
-            // Отправка через GET запрос (URL encoding) - самый надежный способ
-            function submitToGoogleSheets(data) {
-                return new Promise((resolve, reject) => {
-                    // Формируем параметры запроса
-                    const params = new URLSearchParams();
-                    params.append('fullname', data.fullname);
-                    params.append('phone', data.phone);
-                    params.append('city', data.city);
-                    params.append('address', data.address);
-                    params.append('department', data.department);
-                    params.append('services', data.services);
-                    params.append('comment', data.comment);
-                    params.append('timestamp', data.timestamp);
-                    
-                    const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                    
-                    // Используем JSONP стиль или обычный GET
-                    fetch(url, {
-                        method: 'GET',
-                        mode: 'no-cors'
-                    }).then(() => {
-                        // При no-cors мы не можем получить ответ, но запрос уходит
-                        resolve({ success: true });
-                    }).catch((error) => {
-                        reject(error);
-                    });
+            // Отправка через POST с JSON
+            async function submitToGoogleSheets(data) {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
             }
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
+                // Собираем данные из формы
                 const fullname = document.getElementById('fullname').value.trim();
                 const phone = document.getElementById('phone').value.trim();
-                const city = 'Ульяновск';
+                const city = document.getElementById('city').value;
                 const street = document.getElementById('street').value.trim();
                 const department = document.getElementById('department').value;
                 const comment = document.getElementById('comment').value.trim();
                 const agreeCheck = document.getElementById('agree').checked;
 
+                // Получаем выбранную услугу
                 let selectedServices = 'Интернет';
                 const servicesRadios = document.querySelectorAll('input[name="services"]');
                 for (let radio of servicesRadios) {
@@ -476,6 +469,7 @@
                     }
                 }
 
+                // Валидация
                 if (!fullname) {
                     showMessage('❌ Пожалуйста, укажите ваше имя', false);
                     document.getElementById('fullname').focus();
@@ -502,11 +496,13 @@
                     return;
                 }
 
+                // Блокируем кнопку
                 const submitBtn = form.querySelector('.submit-btn');
                 const originalBtnText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '⏳ Отправка заявки...';
 
+                // Формируем данные для отправки
                 const applicationData = {
                     timestamp: new Date().toLocaleString('ru-RU'),
                     fullname: fullname,
@@ -518,16 +514,18 @@
                     comment: comment || '—'
                 };
 
+                console.log('Отправляем данные:', applicationData);
+
                 try {
-                    await submitToGoogleSheets(applicationData);
-                    showMessage(`✅ Заявка успешно отправлена! Имя: ${fullname}. Абонентский отдел: ${department}. Пакет: ${selectedServices}. Менеджер свяжется с вами.`, true);
+                    const result = await submitToGoogleSheets(applicationData);
+                    console.log('Ответ от сервера:', result);
+                    showMessage(`✅ Заявка успешно отправлена! Имя: ${fullname}. Абонентский отдел: ${department}. Менеджер свяжется с вами.`, true);
                     form.reset();
                     document.getElementById('department').value = 'Рябикова 21б';
                     document.getElementById('service_internet').checked = true;
-                    console.log('Отправлено:', applicationData);
                 } catch (error) {
-                    showMessage(`❌ Ошибка при отправке. Пожалуйста, попробуйте позже.`, false);
-                    console.error('Ошибка:', error);
+                    console.error('Ошибка при отправке:', error);
+                    showMessage(`❌ Ошибка при отправке: ${error.message}. Пожалуйста, попробуйте позже.`, false);
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
